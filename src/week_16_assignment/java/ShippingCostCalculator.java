@@ -6,7 +6,11 @@ public class ShippingCostCalculator {
     private static final double STANDARD_RATE = 1.0;
     private static final double EXPRESS_RATE = 2.5;
 
-    public double calculateCost(double weight, String destination, String deliverySpeed) {
+    public double calculateCost(double weight, String destination, String deliverySpeed) throws Exception {
+        if(weight <= 0){
+            throw new Exception();
+        }
+
         double cost = 0.0;
 
         //Determine the base cost by destination;

@@ -8,7 +8,11 @@ public class BankAccount {
     private double balance;
 
     public BankAccount(){
-        this.balance = 0.0;
+        this(0);
+    }
+
+    public BankAccount(double amount){
+        this.balance = amount;
         transactionHistory = new ArrayList<>();
     }
 

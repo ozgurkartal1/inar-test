@@ -1,93 +1,71 @@
 package week_16_assignment.test;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import week_16_assignment.java.OrderStatusManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestOrderStatusManager {
 
-    @Test
-    void testOrderStateTransitionFromNewToPending(){
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.NEW);
-        manager.nextState();
-        assertEquals(OrderStatusManager.OrderState.PENDING, manager.getCurrentState(),
-                "State should transition from NEW to PENDING");
+    private OrderStatusManager manager;
+
+    @BeforeAll
+    static void setUp(){
+        System.out.println("TEST STARTED!");
+    }
+
+    @BeforeEach
+    void startTestCase(){
+        System.out.println("Test Case Started!");
+        manager = new OrderStatusManager();
+    }
+
+    @AfterEach
+    void finishTestCase(){
+        System.out.println("Test case finished!");
+        manager = null;
+    }
+
+    @AfterAll
+    static void tearDown(){
+        System.out.println("Test FINISHED!");
     }
 
     @Test
-    void testOrderStateTransitionFromPendingToShipped(){
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.PENDING);
-        manager.nextState();
-        assertEquals(OrderStatusManager.OrderState.SHIPPED, manager.getCurrentState(),
-                "State should transition from PENDING to SHIPPED");
+    void testNoTransitionFromDeliveredStep(){
+        OrderStatusManager.OrderState result = manager.nextState(OrderStatusManager.OrderState.DELIVERED);
+        assertEquals(OrderStatusManager.OrderState.DELIVERED, result);
     }
 
     @Test
-    void testOrderStateTransitionFromShippedToDelivered(){
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.SHIPPED);
-        manager.nextState();
-        assertEquals(OrderStatusManager.OrderState.DELIVERED, manager.getCurrentState(),
-                "State transition from SHIPPED to DELIVERED");
+    void testNoTransitionFromCancelledStep(){
+        OrderStatusManager.OrderState result = manager.nextState(OrderStatusManager.OrderState.CANCELLED);
+        assertEquals(OrderStatusManager.OrderState.CANCELLED, result);
     }
 
-    @Test
-    void testNoTransitionFromDelivered(){
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.DELIVERED);
-        manager.nextState();
-        assertEquals(OrderStatusManager.OrderState.DELIVERED, manager.getCurrentState(),
-                "State can not make transition from DELIVERED");
+    @ParameterizedTest
+    @CsvSource({"NEW, PENDING",
+                "PENDING, SHIPPED",
+                "SHIPPED, DELIVERED"})
+    void testTransitionOfNextState(OrderStatusManager.OrderState input,
+                                   OrderStatusManager.OrderState expectedResult){
+        OrderStatusManager.OrderState result = manager.nextState(input);
+        assertEquals(expectedResult, result);
     }
 
-    @Test
-    void testNoTransitionFromCanceled(){
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.CANCELED);
-        manager.nextState();
-        assertEquals(OrderStatusManager.OrderState.CANCELED, manager.getCurrentState(),
-                "State can not make transition from CANCELED");
+    @ParameterizedTest
+    @CsvSource({"NEW, CANCELLED",
+                "PENDING, CANCELLED",
+                "SHIPPED, SHIPPED",
+                "DELIVERED, DELIVERED",
+                "CANCELLED, CANCELLED"})
+
+    void testCancelOrderMethodForOrderSteps(OrderStatusManager.OrderState input,
+                                            OrderStatusManager.OrderState expectedResult){
+
+        assertEquals(expectedResult ,manager.cancelOrder(input));
+
     }
-
-    // Test For cancelOrder Method
-
-    @Test
-    void testCancelFromNewState() throws Exception {
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.NEW);
-        manager.cancelOrder();
-        assertEquals(OrderStatusManager.OrderState.CANCELED, manager.getCurrentState(),
-                "You can make cancellation from NEW");
-    }
-
-    @Test
-    void testCancelFromPendingState() throws Exception {
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.PENDING);
-        manager.cancelOrder();
-        assertEquals(OrderStatusManager.OrderState.CANCELED, manager.getCurrentState(),
-                "You can make cancellation from PENDING");
-    }
-
-    @Test
-    void testNoCancellationFromShippedStatus() throws Exception {
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.SHIPPED);
-        manager.cancelOrder();
-        assertEquals(OrderStatusManager.OrderState.SHIPPED, manager.getCurrentState(),
-                "You can not make cancellation from SHIPPED");
-    }
-    @Test
-    void testNoCancellationFromDeliveredStatus() throws Exception {
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.DELIVERED);
-        manager.cancelOrder();
-        assertEquals(OrderStatusManager.OrderState.DELIVERED, manager.getCurrentState(),
-                "You can not make cancellation from DELIVERED");
-    }
-
-    @Test
-    void testNoCancellationFromCancelledStatus() throws Exception {
-        OrderStatusManager manager = new OrderStatusManager(OrderStatusManager.OrderState.CANCELED);
-        assertThrows(Exception.class, ()->{
-            manager.cancelOrder();
-        }, "You can not make cancellation for the product is cancelled before");
-    }
-
-
 }
